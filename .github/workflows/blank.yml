@@ -12,6 +12,15 @@ on:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    inputs:
+      data-version:
+        description: 'Data Version'
+        required: true
+        default: 'v60-2'
+      build-version:
+        description: 'Build Hash'
+        required: false
+        default: 'a1b2c3d'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -28,7 +37,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Deploy Raw Snapshot
-        run: echo Deploying Raw Snapshot !!
+        run: echo Deploying Raw Snapshot == ${{ github.event.inputs.data-version }}!!
 
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
@@ -48,7 +57,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
-        run: echo Deploying Django Build!
+        run: echo Deploying Django Build ${{ github.event.inputs.build-version }}!
           
   create-materialized-views:
     # The type of runner that the job will run on
@@ -65,8 +74,8 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Build Materialized View
-        run: echo Building Materialized views
+        run: echo Building Materialized views ${{ github.event.inputs.data-version }}_${{ github.event.inputs.build-version }}
 
       # Runs a set of commands using the runners shell
       - name: Load Data into ELS
-        run: echo Loading Data into ELS
+        run: echo Loading Data into ELS ${{ github.event.inputs.data-version }}_${{ github.event.inputs.build-version }}
