@@ -28,8 +28,14 @@ jobs:
       # Runs a single command using the runners shell
       - name: Deploy Raw Snapshot
         run: echo Deploying Raw Snapshot == ${{ github.event.inputs.build-version }}!! >> deploy.txt
+        
+      - name: Checkout Branch
+        run: git checkout -b deploy-${{ github.event.inputs.build-version }}
 
       - name: Commit & Push changes
         uses: actions-js/push@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v3
