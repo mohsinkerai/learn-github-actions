@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Data-Flow-V2-From-Branch
+name: 'Data Flow Runner'
 
 # Controls when the action will run. 
 on:
