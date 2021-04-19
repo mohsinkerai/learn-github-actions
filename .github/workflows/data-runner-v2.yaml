@@ -1,0 +1,113 @@
+# This is a basic workflow to help you get started with Actions
+
+name: 'Data Flow Runner V2'
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      data-version:
+        description: 'Data Version'
+        required: true
+        default: 'v60-2'
+      build-version:
+        description: 'Build Hash'
+        required: false
+        default: 'a1b2c3d'
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  deploy-raw-data:
+    name: Deploy Raw Snapshot
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Deploy Raw Snapshot
+        run: echo Deploying Raw Snapshot == ${{ github.event.inputs.data-version }}!!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
+  deploy-django-build:
+    # The type of runner that the job will run on
+    name: Deploying Django Build
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Deploying Django Build ${{ github.event.inputs.build-version }}!
+          
+  create-materialized-views:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    needs: [deploy-raw-data, deploy-django-build]
+    name: Build Materialized Views and Load Data into ELS
+    environment:
+      name: temp-action-approval
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Build Materialized View
+        run: echo Building Materialized views ${{ github.event.inputs.data-version }}_${{ github.event.inputs.build-version }}
+
+      # Runs a set of commands using the runners shell
+      - name: Load Data into ELS
+        run: echo Loading Data into ELS ${{ github.event.inputs.data-version }}_${{ github.event.inputs.build-version }}
+
+  backup-views:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    needs: [create-materialized-views]
+    name: Backup ELS and Materialized View ${{ github.event.inputs.data-version }}_${{ github.event.inputs.build-version }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Backup
+        run: echo Backing-up ${{ github.event.inputs.data-version }}_${{ github.event.inputs.build-version }}
+        
+
+  restore-to-stg-next:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    needs: [backup-views]
+    name: Restore Data to Staging Next ${{ github.event.inputs.data-version }}_${{ github.event.inputs.build-version }}
+    environment:
+      name: temp-action-approval
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Deploy Data to Staging Next
+        run: echo Deploying Data to Staging Next ${{ github.event.inputs.data-version }}_${{ github.event.inputs.build-version }}
